@@ -15,10 +15,27 @@ require dirname(__FILE__) . './../midtrans-php-master/Midtrans.php';
 
 class OrderController extends Controller
 {
+    public function index()
+    {
+        try {
+            $user = JWTAuth::parseToken()->authenticate();
+        } catch (\Throwable $th) {
+            return response()->json([
+                "status" => "failed",
+                "message"=> "Not Authenticated"
+            ], 401);
+        }
+        $order = Order::Where('user_id',$user->id)->with('user','order_detail','store','address')->paginate(10);
+        return response()->json([
+            "status" => "sucsess",
+            "order"   => $order
+        ],200);
+    }
     public function addOrder(Request $request)
     {
         $validator = Validator::make($request->all(), [
 			'cart' => 'required|array',
+			'address_id' => 'required',
         ]);  
         if($validator->fails()){
 			return response()->json([
@@ -98,10 +115,11 @@ class OrderController extends Controller
                 "message"   => "Failed Create Order Detail"
             ],400);
         }
-        try {
-            try{
+        // try {
+        //     try{
                 $snapToken = \Midtrans\Snap::getSnapToken($params);
                 $order->payment_method =  $snapToken;
+                $order->address_id =  $request->input("address_id");
                 $order->save();
                 foreach ($order_detail as $key ) {
                     $key->save();
@@ -111,22 +129,22 @@ class OrderController extends Controller
                     "token"     => $snapToken,
                     "message"   => "Transaction Berhasil"
                 ],200);
-            } catch (\Throwable $th) {
-                $order->delete();
-                foreach ($order_detail as $key ) {
-                    $key->delete();
-                }
-                return response()->json([
-                    "status" => "failed",
-                    "message"   => "Failed Create Snap Transaction"
-                ],400);
-            }
-        } catch (\Throwable $th) {
-            return response()->json([
-                "status" => "failed",
-                "message"   => "Failed Create Snap Transaction"
-            ],400);
-        }
+            // } catch (\Throwable $th) {
+            //     $order->delete();
+            //     foreach ($order_detail as $key ) {
+            //         $key->delete();
+            //     }
+            //     return response()->json([
+            //         "status" => "failed",
+            //         "message"   => "Failed Create Snap Transaction"
+            //     ],400);
+            // }
+        // } catch (\Throwable $th) {
+        //     return response()->json([
+        //         "status" => "failed",
+        //         "message"   => "Failed Create Snap Transaction"
+        //     ],400);
+        // }
 
 
     }

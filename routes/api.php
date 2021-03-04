@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Route;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-Route::get('tes', 'CartController@getOngkir');
+Route::get('tes', 'CartController@tes');
 Route::post('getongkir', 'CartController@getOngkir');
 
 // Route::middleware('auth:api')->get('/user', function (Request $request) {
@@ -61,7 +61,7 @@ Route::middleware(['jwt.verify'])->group(function(){
         Route::delete('/{id}','CartController@delete');
     });
     Route::prefix('/order')->group(function () {
-        Route::get('/','CartController@index');
+        Route::get('/','OrderController@index');
         Route::post('/','OrderController@addOrder');
         Route::delete('/{id}','CartController@delete');
     });
