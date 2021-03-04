@@ -32,12 +32,20 @@ class BookController extends Controller
             //         "data"   => $data
             //     ]);
             // }
+            $search="";
+            if($request->has("search")){
+                $search =  $request->search;
+            }
             $data = Book::with('genreBook.genre')->
             whereHas('genreBook', function ($query) use ($request) {
                 if($request->get('g')){
                     return $query->where('genre_id', '=', $request->g);
                 }
-            })->paginate(10);
+            })->where(function ($query) use ($search) {
+                $query->where('name','like',"%".$search."%")->
+                orWhere('writter','like',"%".$search."%")->
+                orWhere('publisher','like',"%".$search."%")
+              ;})->paginate(10);
             return response()->json([
                 "status" => "success",
                 "data"   => $data
@@ -62,6 +70,10 @@ class BookController extends Controller
     {   
         try {
             $search="";
+            if($request->has("search")){
+                $search =  $request->search;
+            }
+            return $search;
             $data = Book::where('store_id',$id)->where(function ($query) use ($search) {
                 $query->where('name','like',"%".$search."%")->
                 orWhere('writter','like',"%".$search."%")->
@@ -301,9 +313,9 @@ class BookController extends Controller
     function getGenre(Request $request)
     {
         try {
-            if($request->input('s')){
-                $genre = Genre::where('pegawai_nama','like',"%".$request->s."%")->paginate(10);
-            }
+            // if($request->input('s')){
+            //     $genre = Genre::where('pegawai_nama','like',"%".$request->s."%")->paginate(10);
+            // }
             $genre = Genre::paginate(10);
             return response([
             	"status"	=> "success",
