@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Address;
+use App\Models\Admin;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -13,6 +14,42 @@ use Tymon\JWTAuth\Exceptions\JWTException;
 
 class UserController extends Controller
 {
+    public function loginAdmin(Request $request)
+    {
+        $credentials = $request->only('email', 'password');
+        try {
+            if (! $token = JWTAuth::attempt($credentials)) {
+                return response()->json(['error' => 'invalid_credentials'], 400);
+            }
+        } catch (JWTException $e) {
+            return response()->json(['error' => 'could_not_create_token'], 500);
+        }
+        $user = JWTAuth::user();
+        $admin = Admin::Where('user_id',$user->id)->get();
+        if(count($admin)<1){
+            return response()->json([
+                'token' => "Failed",
+                'logged'=> false,
+                'user'=> "User Not Admin",
+            ],202);
+            if(JWTAuth::invalidate(JWTAuth::getToken())) {
+                return response()->json([
+                    "logged"    => false,
+                    "message"   => 'Logout berhasil'
+                ], 201);
+            } else {
+                return response()->json([
+                    "logged"    => true,
+                    "message"   => 'Logout gagal'
+                ], 201);
+            }
+        }
+        return response()->json([
+            'token' => $token,
+            'logged'=> true,
+            'user'=> $user,
+        ],202);
+    }
     public function login(Request $request)
     {
         $credentials = $request->only('email', 'password');

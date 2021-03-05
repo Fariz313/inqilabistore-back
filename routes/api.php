@@ -15,12 +15,17 @@ use Illuminate\Support\Facades\Route;
 */
 Route::post('tes', 'tesController@tes');
 Route::post('getongkir', 'CartController@getOngkir');
+Route::prefix('/admin')->group(function () {
+    Route::get('/', 'DashboardController@index');
+    Route::get('/order', 'OrderController@allIndex');
+});
 
 // Route::middleware('auth:api')->get('/user', function (Request $request) {
 //     return $request->user();
 // });
 Route::post('register', 'UserController@register');
 Route::post('login', 'UserController@login');
+Route::post('login/admin', 'UserController@loginAdmin');
 Route::get('login/check', 'UserController@getAuthenticatedUser');
 Route::get('login/checkfull', 'UserController@getAuthenticatedUserFull');
 Route::post('register/address', 'UserController@registerAddress');

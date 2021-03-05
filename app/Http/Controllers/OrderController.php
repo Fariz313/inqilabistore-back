@@ -15,6 +15,21 @@ require dirname(__FILE__) . './../midtrans-php-master/Midtrans.php';
 
 class OrderController extends Controller
 {
+    public function allIndex()
+    {
+        try {
+            $order = Order::with('user','order_detail','store','address')->paginate(10);
+            return response()->json([
+                "status" => "sucsess",
+                "order"   => $order
+            ],200);
+        } catch (\Throwable $th) {
+            return response()->json([
+                "status" => "failed",
+                "message"=> "Failed get Book"
+            ], 401);
+        }
+    }
     public function index()
     {
         try {
