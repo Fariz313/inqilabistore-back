@@ -154,7 +154,9 @@ class CartController extends Controller
                 ->join('book','cart.book_id','=','book.id')
                 ->join('store','cart.store_id','=','store.id');
             }))
-            ->whereHas('cart')
+            ->whereHas('cart',function($q) use ($user){
+                $q->where('user_id',$user->id);
+            })
             ->paginate(10);
             return response()->json([
                 "status"=>"success",
@@ -187,14 +189,20 @@ class CartController extends Controller
             }
             try {
                 $bookchek   = Book::findorfail($id);
-                $storecheck = Cart::where('book_id',$id)->first();    
+                $storecheck = Cart::where('book_id',$id)->where('user_id',$user->id)->first();    
                 if($storecheck!==null){
                     $storecheck->count += $request->count;
-                    $storecheck->save();
-                    return response()->json([
-                        "status" => "success",
-                        "message"=> "Book Added to Cart"
-                    ], 200);
+                    if($storecheck->save()){
+                        return response()->json([
+                            "status" => "success",
+                            "message"=> "Book Added to Cart"
+                        ], 200);
+                    }else{
+                        return response()->json([
+                            "status" => "failed",
+                            "message"=> "Book ss"
+                        ], 404);        
+                    }
                 }
             } catch (\Throwable $th) {
                 return response()->json([

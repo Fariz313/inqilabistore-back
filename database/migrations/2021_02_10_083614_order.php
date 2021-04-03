@@ -15,12 +15,16 @@ class Order extends Migration
     {
         Schema::create('order', function (Blueprint $table) {
             $table->id();
-            $table->integer('invoice');
+            $table->string('invoice');
             $table->integer('store_id');
             $table->integer('user_id');
-            $table->string('total');
+            $table->integer('address_id');
+            $table->integer('total');
+            $table->integer('ongkir');
+            $table->string('resi')->nullable();
+            $table->string('url')->nullable();
             $table->string('payment_method');
-            $table->enum('status',['pending','success','failed']);
+            $table->enum('status',['pending','process','sending','success','failed']);
             $table->timestamps();
         });
     }
@@ -32,6 +36,6 @@ class Order extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('order_detail');
+        Schema::dropIfExists('order');
     }   
 }

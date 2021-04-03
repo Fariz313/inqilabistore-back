@@ -98,7 +98,11 @@ class UserController extends Controller
 
         $token = JWTAuth::fromUser($user);
 
-        return response()->json(compact('user','token'),201);
+        return response()->json([
+            'token' => $token,
+            'logged'=> true,
+            'user'=> $user,
+        ],202);
     }
 
     public function uploadPhoto(Request $request){
@@ -203,6 +207,14 @@ class UserController extends Controller
     {
         try {
             $user = JWTAuth::parseToken()->authenticate();
+            $countAddress = Address::where('user_id',$user->id)->count();
+            if($countAddress>2){
+                return response()->json([
+                    "status" => "failed",
+                    "message"=> "Maksimal 3 Alamat"
+                ], 401);
+            }
+
         } catch (\Throwable $th) {
             return response()->json([
                 "status" => "failed",
@@ -267,7 +279,7 @@ class UserController extends Controller
     public function getAddress()
     {
         $user = JWTAuth::parseToken()->authenticate();
-        $data = Address::where('user_id',$user->id);
+        $data = Address::where('user_id',$user->id)->get();
         return response()->json([
             "status" => "success",
             "data"   => $data

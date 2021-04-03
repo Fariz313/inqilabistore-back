@@ -4,12 +4,15 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Book;   
+use App\Models\BookImage;   
 use App\Models\Genre;   
 use App\Models\GenreBook;   
 use App\Models\Store;   
 use Illuminate\Support\Facades\Validator;
 use JWTAuth;
+use Illuminate\Support\Str;
 use Tymon\JWTAuth\Exceptions\JWTException;
+use Illuminate\Support\Facades\Storage;
 
 class BookController extends Controller
 {
@@ -17,6 +20,23 @@ class BookController extends Controller
     public function tes()
     {
        return GenreBook::find(2)->genre;
+    }
+    public function tes64(Request $request)
+    {
+        if($request->input('image'))
+        {
+            $images = $request->input('image');
+            foreach ($images as $image) {
+                $extension = explode('/', mime_content_type($image))[1];
+                $image = str_replace('data:image/'.$extension.';base64,', '', $image);
+                $image = str_replace(' ', '+', $image);
+                $imageName = Str::random(6) . '.'.$extension;
+
+                Storage::disk('localbook')->put($imageName, base64_decode($image));
+            }
+            return "done";
+        }
+        
     }
 
     public function index(Request $request)
@@ -57,7 +77,7 @@ class BookController extends Controller
     }
     public function home()
     {
-        $dataNewest = Book::orderBy('created_at')->with('genreBook.genre')->paginate(12);
+        $dataNewest = Book::orderBy('created_at','DESC')->with('genreBook.genre')->paginate(12);
         $genre = Genre::paginate(12);
         return response()->json([
             "status" => "success",
@@ -72,8 +92,7 @@ class BookController extends Controller
             $search="";
             if($request->has("search")){
                 $search =  $request->search;
-            }
-            return $search;
+            }   
             $data = Book::where('store_id',$id)->where(function ($query) use ($search) {
                 $query->where('name','like',"%".$search."%")->
                 orWhere('writter','like',"%".$search."%")->
@@ -152,14 +171,33 @@ class BookController extends Controller
             $book->price            = $request->price;
             $book->discount         = $request->discount;
             $book->stock            = $request->stock;
-            $book->store_id         = Store::where('user_id',$user->id)->first()->id ;
+            $book->store_id         = Store::where('user_id',$user->id)->first()->id ; 
             $book->save();
-                foreach($request->input('genre') as $key => $value) {
-                    GenreBook::create([
-                       'genre_id'=> $value,
-                       'book_id' => $book->id
-                    ]);
+            if($request->input('image'))
+            {
+                $images = $request->input('image');
+                foreach ($images as $key=>$image) {
+                    $extension = explode('/', mime_content_type($image))[1];
+                    $image = str_replace('data:image/'.$extension.';base64,', '', $image);
+                    $image = str_replace(' ', '+', $image);
+                    $imageName = $user->id.'_'.date("h-i-sa").'_'.date("Y-m-d").'_'.Str::random(3).'.'.$extension;
+                    Storage::disk('localbook')->put($imageName, base64_decode($image));
+                    BookImage::create([
+                        'book_id' => $book->id,
+                        'path'=> $imageName,
+                     ]);
+                     if($request->input('default')==$key){
+                         $book->photo=$imageName;
+                         $book->save();
+                     }
                 }
+            }
+            foreach($request->input('genre') as $key => $value) {
+                GenreBook::create([
+                   'genre_id'=> $value,
+                   'book_id' => $book->id
+                ]);
+            }
             return response()->json([
                 'status'	=> 'success',
                 'message'	=> 'Buku berhasil ditambahkan'
@@ -175,7 +213,7 @@ class BookController extends Controller
 
     public function show($id)
     {
-        $data = Book::findOrFail($id);
+        $data = Book::with('genreBook.genre')->with('imageBook')->findOrFail($id);
         return response($data);
     }
 
@@ -281,7 +319,6 @@ class BookController extends Controller
     public function delete($id)
     {
         try{
-
             Book::findOrFail($id)->delete();
 
             return response([

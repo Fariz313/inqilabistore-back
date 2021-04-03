@@ -29,8 +29,9 @@ class StoreController extends Controller
 			'kode_kota' => 'required|integer',
 			'kode_kecamatan' => 'required|integer',
 			'kode_desa' => 'required|integer',
+			'kode_pos' => 'required|integer',
 			'address' => 'required|string',
-			'contact' => 'required|regex:/^[0-9]+$/',
+			'contact' => 'required',
 		]);
 
 		if($validator->fails()){
@@ -56,6 +57,7 @@ class StoreController extends Controller
             $store->kode_kota 	    = $request->kode_kota;
             $store->kode_kecamatan 	= $request->kode_kecamatan;
             $store->kode_desa 	    = $request->kode_desa;
+            $store->kode_pos 	    = $request->kode_pos;
             $store->address 	    = $request->address;
             $store->contact 	    = $request->contact;
             if($request->input('description')){

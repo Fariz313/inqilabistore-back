@@ -13,4 +13,8 @@ class Book extends Model
     {
         return $this->hasMany(GenreBook::class,'book_id');
     }
+    public function imageBook()
+    {
+        return $this->hasMany(BookImage::class,'book_id');
+    }
 }

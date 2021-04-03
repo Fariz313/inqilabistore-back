@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Route;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-Route::post('tes', 'tesController@tes');
+Route::post('tes', 'bookController@tes64');
 Route::post('getongkir', 'CartController@getOngkir');
 Route::prefix('/admin')->group(function () {
     Route::get('/', 'DashboardController@index');
@@ -29,6 +29,7 @@ Route::post('login/admin', 'UserController@loginAdmin');
 Route::get('login/check', 'UserController@getAuthenticatedUser');
 Route::get('login/checkfull', 'UserController@getAuthenticatedUserFull');
 Route::post('register/address', 'UserController@registerAddress');
+Route::get('address', 'UserController@getAddress');
 Route::post('user/edit', 'UserController@editUser');
 Route::post('logout', 'UserController@logout');
 

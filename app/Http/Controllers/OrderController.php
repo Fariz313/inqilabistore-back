@@ -51,7 +51,8 @@ class OrderController extends Controller
         $validator = Validator::make($request->all(), [
 			'cart' => 'required|array',
 			'address_id' => 'required',
-        ]);  
+			'ongkir' => 'required|integer',
+        ]); 
         if($validator->fails()){
 			return response()->json([
 				'status'	=> 0,
@@ -116,7 +117,7 @@ class OrderController extends Controller
             $params = array(
                 'transaction_details' => array(
                     'order_id' => $order->invoice,
-                    'gross_amount' => $order->total,
+                    'gross_amount' => $order->total+$request->input("ongkir"),
                 ),
                 'customer_details' => array(
                     'first_name' => $user->name,
@@ -134,6 +135,7 @@ class OrderController extends Controller
         //     try{
                 $snapToken = \Midtrans\Snap::getSnapToken($params);
                 $order->payment_method =  $snapToken;
+                $order->ongkir = $request->input("ongkir");
                 $order->address_id =  $request->input("address_id");
                 $order->save();
                 foreach ($order_detail as $key ) {
